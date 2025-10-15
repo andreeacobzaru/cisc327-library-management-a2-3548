@@ -9,7 +9,6 @@ from flask import Flask
 from database import init_database, add_sample_data
 from routes import register_blueprints
 
-
 def create_app():
     """
     Application factory function to create and configure Flask app.

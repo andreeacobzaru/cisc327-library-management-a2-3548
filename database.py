@@ -48,6 +48,42 @@ def init_database():
     conn.commit()
     conn.close()
 
+def clear_database():
+    """Clear all data from the database tables."""
+    conn = get_db_connection()
+    try:
+        # Clear all tables
+        conn.execute('DELETE FROM borrow_records')
+        conn.execute('DELETE FROM books')
+        # Reset auto-increment counters
+        conn.execute('DELETE FROM sqlite_sequence WHERE name IN ("books", "borrow_records")')
+        conn.commit()
+        conn.close()
+        return True
+    except Exception as e:
+        conn.close()
+        return False
+
+def setup_database_for_testing():
+    """Setup the database for testing."""
+    clear_database()
+    add_sample_data()
+    conn = get_db_connection()
+    more_sample_books = [
+            ('Test Book 1', 'Test Author 1', '0000000000001', 3),
+            ('Test Book 2', 'Test Author 2', '0000000000002', 2),
+            ('Test Book 3', 'Test Author 3', '0000000000003', 5),
+            ('Test Book 4', 'Test Author 4', '0000000000004', 5),
+            ('Test Book 5', 'Test Author 5', '0000000000005', 5)
+        ]
+    for title, author, isbn, copies in more_sample_books:
+            conn.execute('''
+                INSERT INTO books (title, author, isbn, total_copies, available_copies)
+                VALUES (?, ?, ?, ?, ?)
+            ''', (title, author, isbn, copies, copies))
+    conn.commit()
+    conn.close()
+
 def add_sample_data():
     """Add sample data to the database if it's empty."""
     conn = get_db_connection()
@@ -129,6 +165,29 @@ def get_patron_borrowed_books(patron_id: str) -> List[Dict]:
         })
     
     return borrowed_books
+
+def get_patron_borrowing_history(patron_id: str) -> List[Dict]:
+    """Get borrowing history for a patron."""
+    conn = get_db_connection()
+    records = conn.execute('''
+        SELECT br.*, b.title, b.author 
+        FROM borrow_records br 
+        JOIN books b ON br.book_id = b.id 
+        WHERE br.patron_id = ?
+        ORDER BY br.borrow_date
+    ''', (patron_id,)).fetchall()
+    borrowing_history = []
+    for record in records:
+        borrowing_history.append({
+            'book_id': record['book_id'],
+            'title': record['title'],
+            'author': record['author'],
+            'borrow_date': datetime.fromisoformat(record['borrow_date']),
+            'due_date': datetime.fromisoformat(record['due_date']),
+            'return_date': None if record['return_date'] is None else datetime.fromisoformat(record['return_date'])
+        })
+    conn.close()
+    return borrowing_history
 
 def get_patron_borrow_count(patron_id: str) -> int:
     """Get the number of books currently borrowed by a patron."""
