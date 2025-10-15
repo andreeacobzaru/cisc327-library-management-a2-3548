@@ -66,6 +66,7 @@ def clear_database():
 
 def setup_database_for_testing():
     """Setup the database for testing."""
+    init_database()
     clear_database()
     add_sample_data()
     conn = get_db_connection()
