@@ -1,5 +1,5 @@
 import pytest
-from library_service import (
+from services.library_service import (
     add_book_to_catalog
 )
 
@@ -16,6 +16,15 @@ def test_add_book_invalid_isbn_not_thirteen_chars():
     
     assert success == False
     assert "13 digits" in message
+
+def test_add_book_duplicate_isbn():
+    """Test adding a book with a duplicate ISBN."""
+    fake_isbn = "0123456789125"
+    add_book_to_catalog("Original Book", "Original Author", fake_isbn, 3)
+    success, message = add_book_to_catalog("Duplicate Book", "Duplicate Author", fake_isbn, 2)
+    
+    assert success == False
+    assert "already exists" in message.lower()
 
 def test_add_book_empty_title():
     """Test adding a book with an empty title."""

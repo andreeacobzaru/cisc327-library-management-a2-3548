@@ -3,7 +3,8 @@ API Routes - JSON API endpoints
 """
 
 from flask import Blueprint, jsonify, request
-from library_service import calculate_late_fee_for_book, search_books_in_catalog
+from services.library_service import calculate_late_fee_for_book, search_books_in_catalog
+from database import get_book_by_id
 
 api_bp = Blueprint('api', __name__, url_prefix='/api')
 
@@ -37,3 +38,26 @@ def search_books_api():
         'results': books,
         'count': len(books)
     })
+
+@api_bp.route('/book/<int:book_id>', methods=['GET'])
+def get_book_details(book_id):
+    """
+    Calls the database function get_book_by_id directly
+    and returns the result as JSON in the browser.
+    """
+    
+    # --- 1. CALL THE DATABASE FUNCTION HERE ---
+    book_data = get_book_by_id(book_id)
+    # --- --------------------------------- ---
+    
+    if book_data:
+        # Flask's jsonify converts the Python dictionary result into a JSON response
+        return jsonify({
+            "status": "success",
+            "data": book_data
+        }), 200
+    else:
+        return jsonify({
+            "status": "error",
+            "message": f"Book with ID {book_id} not found."
+        }), 404

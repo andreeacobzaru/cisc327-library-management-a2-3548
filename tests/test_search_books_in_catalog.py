@@ -1,12 +1,19 @@
 import pytest
 
-from library_service import (
+from services.library_service import (
     get_all_books,
     search_books_in_catalog
 )
 from .util import (
     add_new_book_for_testing
 )
+
+def test_search_books_empty_search_type():
+    """Test searching books with an empty search term."""
+    books = search_books_in_catalog("Test", "")
+    
+    assert isinstance(books, list)
+    assert len(books) == 0
 
 def test_search_books_by_title_success():
     """Test searching books by title."""
