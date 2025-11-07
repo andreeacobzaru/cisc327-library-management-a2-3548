@@ -1,7 +1,7 @@
 import pytest
 
 from .util import add_new_book_for_testing
-from library_service import (
+from services.library_service import (
     add_book_to_catalog,
     get_all_books
 )

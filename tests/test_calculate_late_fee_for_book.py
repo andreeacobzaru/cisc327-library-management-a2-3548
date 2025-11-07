@@ -1,12 +1,14 @@
 import pytest
 from datetime import datetime, timedelta
-from library_service import (
+from services.library_service import (
     get_all_books,
-    calculate_late_fee_for_book
+    calculate_late_fee_for_book,
+    get_book_by_isbn
 )
 from .util import (
     get_nonexistent_book_id,
     mock_insert_borrow_record,
+    add_new_book_for_testing
 )
 
 """
@@ -16,12 +18,31 @@ Books due 14 days after borrowing
 - $1.00/day for each additional day after 7 days
 - Maximum $15.00 per book
 """
-def test_calculate_late_fee_invalid_borrow_record():
-    """Test calculating late fee for a non-existent borrow record."""
+
+def test_calculate_late_fee_invalid_patron_id():
+    """Test calculating late fee with an invalid patron ID."""
+    result = calculate_late_fee_for_book("abc123", 1)
+    assert result['status'] == "Invalid patron ID. Must be exactly 6 digits."
+    assert result['fee_amount'] == 0.0
+    assert result['days_overdue'] == None
+
+def test_calculate_late_fee_book_not_found():
+    """Test calculating late fee for a book not found."""
     book_id = get_nonexistent_book_id(get_all_books())
     result = calculate_late_fee_for_book("123456", book_id)
     assert result['status'] == "Book not found."
-    assert result['fee_amount'] == None
+    assert result['fee_amount'] == 0.0
+    assert result['days_overdue'] == None
+
+def test_calculate_late_fee_no_borrow_record():
+    """Test calculating late fee when no borrow record exists for the patron and book."""
+    success, _, book_isbn = add_new_book_for_testing(get_all_books())
+    if not success:
+        pytest.skip("Failed to add new book for testing.")
+    book = get_book_by_isbn(book_isbn)
+    result = calculate_late_fee_for_book("123456", book['id'])
+    assert result['status'] == "Borrow record not found."
+    assert result['fee_amount'] == 0.0
     assert result['days_overdue'] == None
 
 def test_calculate_late_fee_not_overdue():
