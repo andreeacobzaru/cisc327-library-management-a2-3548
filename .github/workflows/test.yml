@@ -26,9 +26,25 @@ jobs:
           # Ensure playwright binaries are downloaded for the runner
           python -m playwright install --with-deps
 
+      - name: Start web server (adjust FLASK_APP if needed)
+        env:
+          FLASK_APP: app.py
+        run: |
+          nohup python -m flask run --host=127.0.0.1 --port=5000 > server.log 2>&1 &
+          timeout=30
+          until curl --silent --fail http://127.0.0.1:5000/ || [ $timeout -le 0 ]; do
+            sleep 1
+            timeout=$((timeout - 1))
+          done
+          if [ $timeout -le 0 ]; then
+            echo "Server did not start within 30s; see server.log"
+            tail -n +1 server.log
+            exit 1
+          fi
+
       - name: Run tests with coverage
         run: |
-          pytest --cov=services --cov-report=xml tests/
+          pytest --base-url=http://127.0.0.1:5000 --cov=services --cov-report=xml tests/
 
       - name: Upload coverage reports to Codecov
         uses: codecov/codecov-action@v5
