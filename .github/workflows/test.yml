@@ -21,6 +21,11 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
 
+      - name: Install Playwright browsers (with OS deps)
+        run: |
+          # Ensure playwright binaries are downloaded for the runner
+          python -m playwright install --with-deps
+
       - name: Run tests with coverage
         run: |
           pytest --cov=services --cov-report=xml tests/
