@@ -38,6 +38,9 @@ def test_borrow_and_return_book_playwright(base_url, page: Page):
     expect(page.get_by_text("Successfully borrowed \"Test Book 1\"")).to_be_visible()
 
     page.get_by_role("link", name="↩️ Return Book").click()
+
+    expect(page.get_by_role("heading", name="↩️ Return Book")).to_be_visible()
+
     page.get_by_role("textbox", name="Patron ID *").click()
     page.get_by_role("textbox", name="Patron ID *").fill("999999")
     page.get_by_role("spinbutton", name="Book ID *").click()
