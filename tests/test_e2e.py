@@ -28,7 +28,7 @@ def test_add_book_to_catalog_playwright(base_url, page: Page):
     expect(page.get_by_role("cell", name="1234567891111")).to_be_visible()
     expect(page.get_by_role("cell", name="/4 Available")).to_be_visible()
 
-def test_borrow_and_returnbook_playwright(base_url, page: Page):
+def test_borrow_and_return_book_playwright(base_url, page: Page):
     server_url = base_url or "http://127.0.0.1:5000"
     page.goto(f"{server_url}/catalog")
     page.get_by_role("row", name="4 Test Book 1 Test Author 1").get_by_placeholder("Patron ID (6 digits)").click()
